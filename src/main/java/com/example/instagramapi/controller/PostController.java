@@ -5,10 +5,12 @@ import com.example.instagramapi.dto.request.CommentCreateRequest;
 import com.example.instagramapi.dto.request.PostCreateRequest;
 import com.example.instagramapi.dto.response.ApiResponse;
 import com.example.instagramapi.dto.response.CommentResponse;
+import com.example.instagramapi.dto.response.LikeResponse;
 import com.example.instagramapi.dto.response.PostResponse;
 import com.example.instagramapi.entity.Post;
 import com.example.instagramapi.security.CustomUserDetails;
 import com.example.instagramapi.service.CommentService;
+import com.example.instagramapi.service.PostLikeService;
 import com.example.instagramapi.service.PostService;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -27,6 +29,7 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
     private final CommentService commentService;
+    private final PostLikeService postLikeService;
 
     @PostMapping
     public ResponseEntity<ApiResponse<PostResponse>> create(
@@ -85,5 +88,23 @@ public class PostController {
     ){
         commentService.delete(id, userDetails.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/like")
+    public ResponseEntity<ApiResponse<LikeResponse>> like(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        LikeResponse response = postLikeService.like(id,userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @DeleteMapping("/{id}/like")
+    public ResponseEntity<ApiResponse<LikeResponse>> unlike(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        LikeResponse response = postLikeService.unlike(id, userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }
