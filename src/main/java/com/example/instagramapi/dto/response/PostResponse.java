@@ -1,0 +1,50 @@
+package com.example.instagramapi.dto.response;
+
+import com.example.instagramapi.entity.Post;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Builder
+public class PostResponse {
+
+    private Long id;
+    private String content;
+    private String imageUrl;
+    private LocalDateTime createdAt;
+
+    private UserResponse user;
+
+    private boolean liked;
+    private long likesCount;
+    private long commentsCount;
+
+    public static PostResponse from(Post post) {
+
+        return PostResponse.builder()
+                .id(post.getId())
+                .content(post.getContent())
+                .imageUrl(post.getImageUrl())
+                .user(UserResponse.from(post.getUser()))
+                .createdAt(post.getCreatedAt())
+                .liked(false)
+                .likesCount(0)
+                .commentsCount(0)
+                .build();
+    }
+    public static PostResponse from(Post post,boolean liked,long likesCount,long commentsCount) {
+
+        return PostResponse.builder()
+                .id(post.getId())
+                .content(post.getContent())
+                .imageUrl(post.getImageUrl())
+                .user(UserResponse.from(post.getUser()))
+                .createdAt(post.getCreatedAt())
+                .liked(liked)
+                .likesCount(likesCount)
+                .commentsCount(commentsCount)
+                .build();
+    }
+}
