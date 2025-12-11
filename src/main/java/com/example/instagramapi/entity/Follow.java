@@ -1,15 +1,16 @@
 package com.example.instagramapi.entity;
 
+
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Getter
 @Table(name = "follows")
+@Getter
 @NoArgsConstructor
-public class Follow {
+public class Follow extends BaseTimeEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,8 +24,9 @@ public class Follow {
     private User following;
 
     @Builder
-    public Follow(User follower, User following) {
+    public Follow(User follower, User following){
         this.follower = follower;
         this.following = following;
     }
+
 }
