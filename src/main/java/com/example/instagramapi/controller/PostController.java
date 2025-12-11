@@ -12,8 +12,6 @@ import com.example.instagramapi.security.CustomUserDetails;
 import com.example.instagramapi.service.CommentService;
 import com.example.instagramapi.service.PostLikeService;
 import com.example.instagramapi.service.PostService;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,31 +33,36 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostResponse>> create(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody PostCreateRequest request
-    ){
+    ) {
         PostResponse response = postService.create(userDetails.getId(), request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<PostResponse>>> findAll(){
-        List<PostResponse> posts = postService.findAll();
-
+    public ResponseEntity<ApiResponse<List<PostResponse>>> findAll(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long userId = userDetails != null ? userDetails.getId() : null;
+        List<PostResponse> posts = postService.findAll(userId);
         return ResponseEntity.ok(ApiResponse.success(posts));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<PostResponse>> findById(@PathVariable Long id) {
-        PostResponse response = postService.findById(id);
+    public ResponseEntity<ApiResponse<PostResponse>> findById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        PostResponse response = postService.findById(id, userDetails.getId());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<PostResponse>> delete(
+    public ResponseEntity<Void> delete(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ){
-        postService.delete(id,userDetails.getId());
+        postService.delete(id, userDetails.getId());
         return ResponseEntity.noContent().build();
     }
 
@@ -68,25 +71,26 @@ public class PostController {
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody CommentCreateRequest request
-    ){
+    ) {
         CommentResponse response = commentService.create(id, userDetails.getId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
+
     }
 
     @GetMapping("/{id}/comments")
     public ResponseEntity<ApiResponse<List<CommentResponse>>> getComments(
             @PathVariable Long id
-    ){
-        List<CommentResponse> responses = commentService.findByPostId(id);
-        return ResponseEntity.ok(ApiResponse.success(responses));
+    ) {
+        List<CommentResponse> response = commentService.findByPostId(id);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @DeleteMapping("/{id}/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
-            @PathVariable Long id,
+            @PathVariable Long commentId,
             @AuthenticationPrincipal CustomUserDetails userDetails
-    ){
-        commentService.delete(id, userDetails.getId());
+    ) {
+        commentService.delete(commentId, userDetails.getId());
         return ResponseEntity.noContent().build();
     }
 
@@ -94,8 +98,8 @@ public class PostController {
     public ResponseEntity<ApiResponse<LikeResponse>> like(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails
-    ){
-        LikeResponse response = postLikeService.like(id,userDetails.getId());
+    ) {
+        LikeResponse response = postLikeService.like(userDetails.getId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
@@ -103,8 +107,19 @@ public class PostController {
     public ResponseEntity<ApiResponse<LikeResponse>> unlike(
             @PathVariable Long id,
             @AuthenticationPrincipal CustomUserDetails userDetails
-    ){
-        LikeResponse response = postLikeService.unlike(id, userDetails.getId());
+    ) {
+        LikeResponse response = postLikeService.unlike(userDetails.getId(), id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @GetMapping("/{id}/like")
+    public ResponseEntity<ApiResponse<LikeResponse>> getLikeStatus(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        Long userId = userDetails != null ? userDetails.getId() : null;
+        LikeResponse response = postLikeService.getLikeStatus(id, userId);
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
 }
