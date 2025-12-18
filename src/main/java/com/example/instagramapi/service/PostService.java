@@ -28,18 +28,18 @@ public class PostService {
     private final CommentRepository commentRepository;
 
     @Transactional
-    public PostResponse create(Long userId, PostCreateRequest request) {
+    public PostResponse create(Long userId, PostCreateRequest postCreateRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
 
         Post post = Post.builder()
-                .content(request.getContent())
-                .imageUrl(request.getImageUrl())
+                .content(postCreateRequest.getContent())
+                .imageUrl(postCreateRequest.getImageUrl())
                 .user(user)
                 .build();
 
-        Post saved = postRepository.save(post);
-        return PostResponse.from(saved);
+        Post savedPost = postRepository.save(post);
+        return PostResponse.from(savedPost);
     }
 
     // 전체 게시물
@@ -71,11 +71,11 @@ public class PostService {
     }
 
     @Transactional
-    public void delete(Long postId, Long userId) {
+    public void delete(Long postId, Long requestingUserId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        if (!post.getUser().getId().equals(userId)) {
+        if (!post.getUser().getId().equals(requestingUserId)) {
             throw new CustomException(ErrorCode.NOT_POST_OWNER);
         }
 
@@ -85,12 +85,12 @@ public class PostService {
     }
 
     private PostResponse toPostResponseWithStats(Post post, Long currentUserId) {
-        boolean liked  = currentUserId != null
+        boolean isLikedByCurrentUser  = currentUserId != null
                 && postLikeRepository.existsByUserIdAndPostId(currentUserId, post.getId());
-        long likeCount = postLikeRepository.countByPostId(post.getId());
+        long likeCount = postLike.countByPostId(post.getId());
         long commentCount = commentRepository.countByPostId(post.getId());
 
-        return PostResponse.from(post, liked, likeCount, commentCount);
+        return PostResponse.from(post, isLikedByCurrentUser, likeCount, commentCount);
 
     }
 
